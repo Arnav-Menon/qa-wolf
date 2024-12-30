@@ -14,12 +14,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Detect .sql files in PR
+        id: detect_files
         run: |
           FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
-          echo "FILES_FOUND=$FILES" >> $GITHUB_ENV
+          echo "files=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: env.FILES_FOUND != ""
+        if: env.files != ''  # Corrected empty check
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
