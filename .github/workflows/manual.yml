@@ -12,11 +12,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch the full history, including all branches
 
       - name: Detect .sql files in PR
         id: detect_files
         run: |
-          FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }} | grep '\.sql$' || true)
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
           echo "files=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
