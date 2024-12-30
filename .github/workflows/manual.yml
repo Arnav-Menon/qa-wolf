@@ -1,0 +1,26 @@
+name: SQL File Notification
+
+on:
+  pull_request:
+    types: [closed]  # Trigger when a PR is closed
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true  # Only run if the PR is merged
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Detect .sql files in PR
+        run: |
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
+          echo "FILES_FOUND=$FILES" >> $GITHUB_ENV
+
+      - name: Send Slack Notification
+        if: env.FILES_FOUND != ""
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
