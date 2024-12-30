@@ -22,7 +22,6 @@ jobs:
           echo "files=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: env.files != ''  # Corrected empty check
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
