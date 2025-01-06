@@ -13,7 +13,7 @@ jobs:
       - name: Checkout PR commits
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2  # Fetch only the head commit
+          fetch-depth: 1  # Fetch only the head commit
 
       - name: Fetch base commit
         run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1
@@ -25,7 +25,7 @@ jobs:
           echo "FILES=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: ${{ steps.detect_files.outputs.FILES != '' }}  # Check if FILES is not empty
+        if: ${{ env.FILES != '' }}  # Check if FILES is not empty
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
