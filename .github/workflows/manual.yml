@@ -13,18 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch the full history, including all branches
+          fetch-depth: 1  # Fetch only the head commit
+
+      - name: Fetch base commit
+        run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1
 
       - name: Detect .sql files in PR
         id: detect_files
         run: |
-          FILES=$(git diff --name-only 6acc792ec3d00361d4b2b002f281ce5facf926c4 46b1ec65d28b352d9c00b23fd61e45c1562626d4 | grep '\.sql$' || true)
-          FILES=$(echo "$FILES" | tr '\n' ' ') # Replace newlines with spaces
-          echo "files=$FILES" >> $GITHUB_ENV
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
+          echo "FILES=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
+        if: env.FILES != ""
         run: |
-          echo ${{ secrets.SLACK_WEBHOOK_URL }}
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
           ${{ secrets.SLACK_WEBHOOK_URL }}
