@@ -18,7 +18,8 @@ jobs:
       - name: Detect .sql files in PR
         id: detect_files
         run: |
-          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
+          FILES=$(git diff --name-only 6acc792ec3d00361d4b2b002f281ce5facf926c4 46b1ec65d28b352d9c00b23fd61e45c1562626d4 | grep '\.sql$' || true)
+          FILES=$(echo "$FILES" | tr '\n' ' ') # Replace newlines with spaces
           echo "files=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
