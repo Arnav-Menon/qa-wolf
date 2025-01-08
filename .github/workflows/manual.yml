@@ -13,10 +13,11 @@ jobs:
       - name: Checkout PR commits
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # Fetch the last two commits to ensure the base and head commits are available
+          fetch-depth: 1  # Fetch only the latest commit
 
-      - name: Fetch base commit
-        run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1
+      - name: Fetch base and head commits
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} --depth=1
 
       - name: Detect .sql files in PR
         id: detect_files
