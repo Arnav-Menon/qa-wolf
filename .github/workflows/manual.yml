@@ -13,7 +13,7 @@ jobs:
       - name: Checkout PR commits
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # Fetch the last two commits to ensure the base and head commits are available
+          fetch-depth: 2  # Fetch the last two commits to ensure the base and head commits are available
 
       - name: Fetch base commit
         run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1
