@@ -1,1 +1,1 @@
-select * from gunnu;
+select * from plus;
