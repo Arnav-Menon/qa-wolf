@@ -23,6 +23,7 @@ jobs:
         id: detect_files
         run: |
           FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
+          echo "Detected SQL files: $FILES"  # This prints to the console for debugging
           echo "FILES=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
