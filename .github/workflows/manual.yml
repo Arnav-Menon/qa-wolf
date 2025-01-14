@@ -10,25 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout PR commits
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # Fetch only the latest commit
+          fetch-depth: 2  # Fetch the last two commits
 
-      - name: Fetch base and head commits
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} --depth=1
-
-      - name: Detect .sql files in PR
+      - name: Detect .sql files in the last commit
         id: detect_files
         run: |
-          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
-          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs) # Remove newlines and trim any spaces
-          echo "Detected SQL files: $FILES"  # This prints to the console for debugging
+          # Get the latest commit
+          LATEST_COMMIT=$(git rev-parse HEAD)
+          # Get the parent commit of the latest commit
+          PREVIOUS_COMMIT=$(git rev-parse HEAD^)
+          
+          echo "Latest Commit: $LATEST_COMMIT"
+          echo "Previous Commit: $PREVIOUS_COMMIT"
+          
+          # Compare the two commits for .sql files
+          FILES=$(git diff --name-only $PREVIOUS_COMMIT $LATEST_COMMIT | grep '\.sql$' || true)
+          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs) # Remove newlines and trim spaces
+          echo "Detected SQL files: $FILES"
           echo "FILES=$FILES" >> $GITHUB_ENV
-      
+
       - name: Send Slack Notification
-        if: ${{ env.FILES && env.FILES != '' }} # Ensure FILES is both defined and non-empty
+        if: ${{ env.FILES && env.FILES != '' }}  # Ensure FILES is non-empty
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
