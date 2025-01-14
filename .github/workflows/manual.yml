@@ -33,7 +33,7 @@ jobs:
           echo "FILES=$FILES" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: env.FILES != ''  # Ensure FILES is non-empty
+        if: ${{ env.FILES && env.FILES != '' }}  # Ensure FILES is non-empty
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
