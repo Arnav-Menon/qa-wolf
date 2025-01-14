@@ -23,12 +23,12 @@ jobs:
         id: detect_files
         run: |
           FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql$' || true)
-          FILES=$(echo "$FILES" | tr '\n' ' ') # Remove newlines and join the file paths with spaces
+          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs) # Remove newlines and trim any spaces
           echo "Detected SQL files: $FILES"  # This prints to the console for debugging
           echo "FILES=$FILES" >> $GITHUB_ENV
-
+      
       - name: Send Slack Notification
-        if: ${{ env.FILES != '' }}  # Check if FILES is not empty
+        if: ${{ env.FILES && env.FILES != '' }} # Ensure FILES is both defined and non-empty
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"A PR containing .sql files has been merged: ${{ github.event.pull_request.html_url }}"}' \
