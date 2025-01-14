@@ -13,24 +13,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Fetch the last two commits
+          fetch-depth: 1  # Just get the latest commit
 
-      - name: Detect .sql files in the last commit
+      - name: Fetch base and head commits
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} --depth=1
+
+      - name: Detect SQL files in PR
         id: detect_files
         run: |
-          # Get the latest commit
-          LATEST_COMMIT=$(git rev-parse HEAD)
-          # Get the parent commit of the latest commit
-          PREVIOUS_COMMIT=$(git rev-parse HEAD^)
+          FILES=$(git diff --name-only --diff-filter=ACMRT -i \
+            ${{ github.event.pull_request.base.sha }} \
+            ${{ github.event.pull_request.head.sha }} \
+            | grep -i '\.sql$' || true)
           
-          echo "Latest Commit: $LATEST_COMMIT"
-          echo "Previous Commit: $PREVIOUS_COMMIT"
-          
-          # Compare the two commits for .sql files
-          FILES=$(git diff --name-only HEAD^1 HEAD | grep '\.sql$' || true)
-          FILES=$(echo "$FILES" | tr '\n' ' ' | xargs) # Remove newlines and trim spaces
-          echo "Detected SQL files: $FILES"
-          echo "FILES=$FILES" >> $GITHUB_ENV
+          if [ ! -z "$FILES" ]; then
+            # Format files for Slack message
+            FORMATTED_FILES=$(echo "$FILES" | sed 's/^/• /')
+            echo "files<<EOF" >> $GITHUB_OUTPUT
+            echo "$FORMATTED_FILES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "files_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "files_found=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Send Slack Notification
         if: ${{ env.FILES && env.FILES != '' }}  # Ensure FILES is non-empty
